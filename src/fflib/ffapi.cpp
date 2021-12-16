@@ -58,6 +58,9 @@
 #include "mpi.h"
 #endif
 #endif
+#ifdef ENABLE_CWIPI
+#include "cwipi.h"
+#endif
 
 extern long verbosity ;
 
@@ -253,24 +256,32 @@ static  void ffapi_winbinmode(FILE *f){
 #endif
   }
 
-static  void ffapi_mpi_init(int &argc, char** &argv){
-    /// only call MPI_Init() if this has not already been done in [[file:~/ffcs/src/server.cpp]]
-#ifndef FFLANG
-#ifdef PARALLELE
-    // need #include "mpi.h"
-    int provided;
-    MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided);
-    if(provided < MPI_THREAD_SERIALIZED) {
-        MPI_Comm_rank(MPI_COMM_WORLD, &provided);
-        if(provided == 0)
-            std::cout << "MPI_THREAD_SERIALIZED not supported !" << std::endl;
-    }
-#ifdef WITH_PETSCxxxxx
-    PetscInitialize(&argc, &argv, 0, "");
-#endif
 
+static MPI_Comm ffapi_mpi_init(int &argc, char** &argv){
+  /// only call MPI_Init() if this has not already been done in [[file:~/ffcs/src/server.cpp]]
+  MPI_Comm localComm;
+#ifndef FFLANG
+  #ifdef PARALLELE
+  // need #include "mpi.h"
+  int provided;
+  MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided);
+  if(provided < MPI_THREAD_SERIALIZED) {
+    MPI_Comm_rank(localComm, &provided);
+      if(provided == 0)
+        std::cout << "MPI_THREAD_SERIALIZED not supported !" << std::endl;
+  }
+   #ifdef ENABLE_CWIPI
+  cwipi_init(MPI_COMM_WORLD, "FreeFem++", &localComm);
+    #else
+  localComm = MPI_COMM_WORLD;
+    #endif
+    #ifdef WITH_PETSCxxxxx
+  PETSC_COMM_WORLD = localComm;
+  PetscInitialize(&argc, &argv, 0, "");
+    #endif
+  #endif
 #endif
-#endif
+  return localComm;
   }
 
  static void ffapi_mpi_finalize(){
@@ -278,6 +289,9 @@ static  void ffapi_mpi_init(int &argc, char** &argv){
 #ifdef PARALLELE
 #ifdef WITH_PETSCxxxxxxxx
     PetscFinalize();
+#endif
+#ifdef ENABLE_CWIPI
+   cwipi_finalize();
 #endif
     MPI_Finalize();
 #endif
