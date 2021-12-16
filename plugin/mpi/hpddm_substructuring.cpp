@@ -352,7 +352,7 @@ AnyType attachCoarseOperator_Op<Type, K>::operator()(Stack stack) const {
         if(!R && !ptA->getVectors())
             cout << "Problem !" << endl;
         R->resize(0);
-        MPI_Barrier(MPI_COMM_WORLD);
+        MPI_Barrier(ff_global_comm_world);
         if(timing)
             t = MPI_Wtime();
         if(ptA->exclusion(comm)) {
@@ -378,7 +378,7 @@ AnyType attachCoarseOperator_Op<Type, K>::operator()(Stack stack) const {
         ptA->callNumfact();
     }
     else {
-        MPI_Barrier(MPI_COMM_WORLD);
+        MPI_Barrier(ff_global_comm_world);
         ret = ptA->template buildTwo<2>(comm);
     }
     if(timing)
@@ -452,7 +452,7 @@ AnyType solveDDM_Op<Type, K>::operator()(Stack stack) const {
         if(timing)
             (*timing)[2] = MPI_Wtime() - timer;
     }
-    MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Barrier(ff_global_comm_world);
     if(!excluded && timing && mpisize > 1)
         (*timing)[timing->n - 1] += MPI_Wtime() - timer;
     timer = MPI_Wtime();
@@ -462,9 +462,9 @@ AnyType solveDDM_Op<Type, K>::operator()(Stack stack) const {
         opt.remove("verbosity");
     timer = MPI_Wtime();
     if(!excluded)
-        HPDDM::IterativeMethod::solve(*ptA, (K*)*ptRHS, (K*)*ptX, 1, MPI_COMM_WORLD);
+        HPDDM::IterativeMethod::solve(*ptA, (K*)*ptRHS, (K*)*ptX, 1, ff_global_comm_world);
     else
-        HPDDM::IterativeMethod::solve<true>(*ptA, (K*)nullptr, (K*)nullptr, 1, MPI_COMM_WORLD);
+        HPDDM::IterativeMethod::solve<true>(*ptA, (K*)nullptr, (K*)nullptr, 1, ff_global_comm_world);
     timer = MPI_Wtime() - timer;
     if(!excluded && verbosity > 0 && rank == 0)
         std::cout << scientific << " --- system solved (in " << timer << ")" << std::endl;
@@ -578,7 +578,7 @@ class InvSubstructuring {
             HPDDM::Option& opt = *HPDDM::Option::get();
             if(mpirank != 0)
                 opt.remove("verbosity");
-            HPDDM::IterativeMethod::solve(*t, (K*)*u, (K*)*out, 1, MPI_COMM_WORLD);
+            HPDDM::IterativeMethod::solve(*t, (K*)*u, (K*)*out, 1, ff_global_comm_world);
         }
         static U inv(U Ax, InvSubstructuring<T, U, K, trans> A) {
             A.solve(Ax);

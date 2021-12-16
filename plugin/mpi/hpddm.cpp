@@ -435,7 +435,7 @@ AnyType solveDDM_Op<Type, K>::operator()(Stack stack) const {
             pair->destroy();
             pair = nullptr;
         }
-    MPI_Comm comm = nargs[4] ? *(MPI_Comm*)GetAny<pcommworld>((*nargs[4])(stack)) : MPI_COMM_WORLD;
+    MPI_Comm comm = nargs[4] ? *(MPI_Comm*)GetAny<pcommworld>((*nargs[4])(stack)) : ff_global_comm_world;
     int rank;
     MPI_Comm_rank(ptA->getCommunicator(), &rank);
     if(rank != mpirank || rank != 0) {
@@ -696,7 +696,7 @@ class InvSchwarz {
             }
             (*t).exchange(rhs, mu);
             (*t).clearBuffer(allocate);
-            HPDDM::IterativeMethod::solve(*t, rhs, x, mu, MPI_COMM_WORLD);
+            HPDDM::IterativeMethod::solve(*t, rhs, x, mu, ff_global_comm_world);
             if(!std::is_same<HPDDM::upscaled_type<K>, K>::value) {
                 for(int i = u->n - 1; i >= 0; --i) {
                     u->operator[](i) = rhs[i];
@@ -859,7 +859,7 @@ class IterativeMethod : public OneOperator {
                 virtual AnyType operator()(Stack stack)  const {
                     int ret = -1;
                     try {
-                        MPI_Comm comm = nargs[3] ? *(MPI_Comm*)GetAny<pcommworld>((*nargs[3])(stack)) : MPI_COMM_WORLD;
+                        MPI_Comm comm = nargs[3] ? *(MPI_Comm*)GetAny<pcommworld>((*nargs[3])(stack)) : ff_global_comm_world;
                         if(nargs[2])
                             HPDDM::Option::get()->parse(*(GetAny<string*>((*nargs[2])(stack))));
                         if(c == 0 || c == 1) {

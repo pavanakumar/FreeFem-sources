@@ -56,7 +56,11 @@
 #ifndef FFLANG
 #ifdef PARALLELE
 #include "mpi.h"
+MPI_Comm ff_global_comm_world;
 #endif
+#endif
+#ifdef ENABLE_CWIPI
+#include "cwipi.h"
 #endif
 
 extern long verbosity ;
@@ -256,20 +260,36 @@ static  void ffapi_winbinmode(FILE *f){
 static  void ffapi_mpi_init(int &argc, char** &argv){
     /// only call MPI_Init() if this has not already been done in [[file:~/ffcs/src/server.cpp]]
 #ifndef FFLANG
-#ifdef PARALLELE
+ #ifdef PARALLELE
     // need #include "mpi.h"
     int provided;
     MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided);
     if(provided < MPI_THREAD_SERIALIZED) {
-        MPI_Comm_rank(MPI_COMM_WORLD, &provided);
+        MPI_Comm_rank(ff_global_comm_world, &provided);
         if(provided == 0)
             std::cout << "MPI_THREAD_SERIALIZED not supported !" << std::endl;
     }
-#ifdef WITH_PETSCxxxxx
+  #ifdef ENABLE_CWIPI
+    // Intercept command line arguements and see if a prefix is specified
+    // for the coupling code
+    const std::string str_cwipi_prefix("--cwipi-prefix");
+    std::stringstream cat;
+    cat << "FreeFem++";
+    for(int i=0; i<argc; ++i) {
+        if( str_cwipi_prefix.compare(argv[i]) == 0 ) {
+            cat << "-" << argv[i+1];
+            break;
+        }
+    }
+    cwipi_init(MPI_COMM_WORLD, cat.str().c_str(), &ff_global_comm_world);
+  #else
+    ff_global_comm_world = MPI_COMM_WORLD;
+  #endif
+  #ifdef WITH_PETSCxxxxx
+    PETSC_COMM_WORLD = ff_global_comm_world;
     PetscInitialize(&argc, &argv, 0, "");
-#endif
-
-#endif
+  #endif
+ #endif
 #endif
   }
 
@@ -278,6 +298,9 @@ static  void ffapi_mpi_init(int &argc, char** &argv){
 #ifdef PARALLELE
 #ifdef WITH_PETSCxxxxxxxx
     PetscFinalize();
+#endif
+#ifdef ENABLE_CWIPI
+   cwipi_finalize();
 #endif
     MPI_Finalize();
 #endif

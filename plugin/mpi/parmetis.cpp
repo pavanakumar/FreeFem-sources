@@ -33,6 +33,8 @@
 #define IDX_T MPI_INT
 #endif
 
+extern MPI_Comm ff_global_comm_world;
+
 template<class Type, class Mesh>
 class ParMETIS_Op : public E_F0mps {
 public:
@@ -68,7 +70,7 @@ AnyType ParMETIS_Op<Type, Mesh>::operator()(Stack stack) const {
     long n = ptKN->n;
     idx_t* ptInt = sizeof(idx_t) <= sizeof(Type) ? reinterpret_cast<idx_t*>(pt) : new idx_t[n];
     std::fill_n(ptInt, n, 0);
-    MPI_Comm comm = nargs[0] ? *((MPI_Comm*)GetAny<pcommworld>((*nargs[0])(stack))) : MPI_COMM_WORLD;
+    MPI_Comm comm = nargs[0] ? *((MPI_Comm*)GetAny<pcommworld>((*nargs[0])(stack))) : ff_global_comm_world;
     int worker = nargs[1] ? GetAny<long>((*nargs[1])(stack)) : 0;
     MPI_Comm workComm = comm;
     if(worker == 0)

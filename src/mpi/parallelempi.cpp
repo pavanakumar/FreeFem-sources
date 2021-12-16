@@ -73,31 +73,9 @@ void ff_atend( void (*atendff)());
 #undef MPICH_IGNORE_CXX_SEEK
 #define MPICH_IGNORE_CXX_SEEK
 #include <mpi.h>
+extern MPI_Comm ff_global_comm_world;
 
-// Remark: on mipich MPI_Comm, MPI_Resquest, MPI_Group, MPI_Op are int
-// => encapsulation
-
-//static long verbosity = 1000;
-template<class MPI_type, int DIFF>
-struct fMPI {
-  MPI_type v;
-  operator MPI_type &() { return v; }
-  operator MPI_type *() { return &v; }
-  operator MPI_type () const { return v; }
-
-  // MPI_type * operator &() { return &v; }
-  void operator = (const MPI_type vv) { v=vv; }
-  fMPI(const MPI_type vv=0) : v(vv) {}
-  bool operator != (MPI_type vv) const { return vv != v; }
-  bool operator == (MPI_type vv) const { return vv == v; }
-};
-
-// the encapsulation for the for MPI type (int on mpich )
-typedef fMPI<MPI_Comm, 1> fMPI_Comm;
-typedef fMPI<MPI_Group, 2> fMPI_Group;
-typedef fMPI<MPI_Request, 3> fMPI_Request;
-typedef fMPI<MPI_Op, 4> fMPI_Op;
-// end of encapsulation ..
+#include "fmpi.hpp"
 
 // to send a sparse matrix we send header, line array, colmun array, value array.
 // end afer the fist resquest we need to do allocation.
@@ -275,7 +253,7 @@ struct MPIrank {
   MPI_Request *rq;
   // mutable bool block;
 
-  MPIrank(int i=0, MPI_Comm com=MPI_COMM_WORLD, MPI_Request *rqq=0)
+  MPIrank(int i=0, MPI_Comm com=ff_global_comm_world, MPI_Request *rqq=0)
     : who(i), comm(com), rq(rqq) {
     int n;
     MPI_Comm_size(comm, &n);
@@ -1124,7 +1102,7 @@ struct Op_All2All : public binary_function<KN_<R>,KN_<R>,long> {
       CheckContigueKN(s);
       CheckContigueKN(r);
 
-    MPI_Comm comm=MPI_COMM_WORLD;
+    MPI_Comm comm=ff_global_comm_world;
     int mpisizew;
     MPI_Comm_size(comm, &mpisizew); /* local */
     int chunk = s.N()/mpisizew;
@@ -1140,7 +1118,7 @@ template<class R>
 struct Op_Allgather1 : public binary_function<R*,KN_<R>,long> {
   static long  f( R*  const  & s, KN_<R>  const  &r)
     {
-      MPI_Comm comm=MPI_COMM_WORLD;
+      MPI_Comm comm=ff_global_comm_world;
       int mpisizew;
 	CheckContigueKN(r);
 
@@ -1160,7 +1138,7 @@ struct Op_Allgather : public binary_function<KN_<R>,KN_<R>,long> {
 	CheckContigueKN(s);
 	CheckContigueKN(r);
 
-      MPI_Comm comm=MPI_COMM_WORLD;
+      MPI_Comm comm=ff_global_comm_world;
       int mpisizew;
       MPI_Comm_size(comm, &mpisizew); /* local */
       int chunk = r.N()/mpisizew;
@@ -1233,7 +1211,7 @@ long  Op_All2Allv( KN_<R>  const  & s, KN_<R>  const  &r, KN_<long> const &sendc
     CheckContigueKN(s);
     CheckContigueKN(r);
 
-  MPI_Comm comm=MPI_COMM_WORLD;
+  MPI_Comm comm=ff_global_comm_world;
   int mpirankv=MPI_UNDEFINED;
   MPI_Comm_rank(comm, &mpirankv);
 
@@ -1266,7 +1244,7 @@ struct Op_Allgatherv : public quad_function<KN_<R>,KN_<R>,KN_<long>,KN_<long>,lo
       CheckContigueKN(r);
       CheckContigueKN(s);
 
-    MPI_Comm comm=MPI_COMM_WORLD;
+    MPI_Comm comm=ff_global_comm_world;
     int mpisizew;
     MPI_Comm_size(comm, &mpisizew);
     ffassert( recvcount.N() == displs.N() && recvcount.N() == mpisizew);
@@ -1688,7 +1666,7 @@ struct Op_All2All<Complex> : public binary_function<KN_<Complex>,KN_<Complex>,lo
       CheckContigueKN(r);
       CheckContigueKN(s);
 
-    MPI_Comm comm=MPI_COMM_WORLD;
+    MPI_Comm comm=ff_global_comm_world;
     int mpisizew;
     MPI_Comm_size(comm, &mpisizew); /* local */
     int chunk = s.N()/mpisizew;
@@ -1712,7 +1690,7 @@ struct Op_Allgather1<Complex> : public binary_function<Complex *,KN_<Complex>,lo
       CheckContigueKN(r);
 
 
-    MPI_Comm comm=MPI_COMM_WORLD;
+    MPI_Comm comm=ff_global_comm_world;
     int mpisizew;
     MPI_Comm_size(comm, &mpisizew); /* local */
     int chunk = 1;
@@ -1736,7 +1714,7 @@ struct Op_Allgather<Complex> : public binary_function<KN_<Complex>,KN_<Complex>,
 	CheckContigueKN(r);
 	CheckContigueKN(s);
 
-      MPI_Comm comm=MPI_COMM_WORLD;
+      MPI_Comm comm=ff_global_comm_world;
       int mpisizew;
       MPI_Comm_size(comm, &mpisizew); /* local */
       int chunk = r.N()/mpisizew;
@@ -1828,7 +1806,7 @@ long  Op_All2Allv<Complex>( KN_<Complex>  const  & s, KN_<Complex>  const  &r, K
     CheckContigueKN(r);
     CheckContigueKN(s);
 
-  MPI_Comm comm=MPI_COMM_WORLD;
+  MPI_Comm comm=ff_global_comm_world;
   int mpirankv=MPI_UNDEFINED;
   MPI_Comm_rank(comm, &mpirankv);
 
@@ -1872,7 +1850,7 @@ struct Op_Allgatherv<Complex> : public quad_function<KN_<Complex>,KN_<Complex>,K
       CheckContigueKN(r);
       CheckContigueKN(s);
 
-    MPI_Comm comm=MPI_COMM_WORLD;
+    MPI_Comm comm=ff_global_comm_world;
     int mpisizew;
     MPI_Comm_size(comm, &mpisizew);
     ffassert( recvcount.N() == displs.N() && recvcount.N() == mpisizew);
@@ -2218,7 +2196,7 @@ MPIrank mpiwhob(long i) { return MPIrank(i);}
 MPIrank mpiwhob(long i,fMPI_Comm comm) { return MPIrank(i,comm,Syncro_block);}
 
 MPIrank mpiwho_(const long &i,const fMPI_Comm &comm,fMPI_Request * const &rq) { return MPIrank(i,comm,*rq);}
-MPIrank mpiwho_(const long &i,fMPI_Request * const &rq) { return MPIrank(i, MPI_COMM_WORLD ,*rq);}
+MPIrank mpiwho_(const long &i,fMPI_Request * const &rq) { return MPIrank(i, ff_global_comm_world ,*rq);}
 
 long mpiWait(fMPI_Request * frq) {
  MPI_Request * rq= *frq;
@@ -2286,7 +2264,7 @@ long mpiRank(fMPI_Comm  cmm) {
 AnyType InitializeGroup(Stack stack,const AnyType &x){
     MPI_Group *g=*PGetAny<fMPI_Group>(x);
     *g=MPI_GROUP_NULL;
-     MPI_Comm_group(MPI_COMM_WORLD, g);
+     MPI_Comm_group(ff_global_comm_world, g);
     return  g;
 }
 AnyType DeleteGroup(Stack stack,const AnyType &x){
@@ -2297,12 +2275,12 @@ AnyType DeleteGroup(Stack stack,const AnyType &x){
 AnyType InitializeComm(Stack stack,const AnyType &x){
     MPI_Comm *comm= *PGetAny<fMPI_Comm>(x);
     *comm=MPI_COMM_NULL;
-    MPI_Comm_dup(MPI_COMM_WORLD, comm);
+    MPI_Comm_dup(ff_global_comm_world, comm);
     return  comm;
 }
 AnyType DeleteComm(Stack stack,const AnyType &x){
     MPI_Comm *comm= *PGetAny<fMPI_Comm>(x);
-    if(comm && (*comm != MPI_COMM_NULL && *comm != MPI_COMM_WORLD))// add MPI_COMM_WORLD FH 11/2010 FH
+    if(comm && (*comm != MPI_COMM_NULL && *comm != ff_global_comm_world))// add ff_global_comm_world FH 11/2010 FH
       MPI_Comm_free(comm);
     return  Nothing;
 }
@@ -2348,7 +2326,7 @@ fMPI_Group* def_group( fMPI_Group* const & a,fMPI_Comm * const &comm, KN_<long> 
 fMPI_Group* def_group( fMPI_Group* const & a, KN_<long>  const & b)
 {
     MPI_Group group;
-    MPI_Comm comm=MPI_COMM_WORLD;
+    MPI_Comm comm=ff_global_comm_world;
     MPI_Comm_group(comm,& group);
     KN<int> ranks(b);
     MPI_Group_incl(group, ranks.N(),(int *) ranks, *a);
@@ -2363,7 +2341,7 @@ fMPI_Group* def_group( fMPI_Group* const & a,fMPI_Comm * const &comm)
 
 fMPI_Comm* def_comm( fMPI_Comm* const & a,fMPI_Group* const & g)
 {
-    int ok=MPI_Comm_create(MPI_COMM_WORLD,*g,*a);
+    int ok=MPI_Comm_create(ff_global_comm_world,*g,*a);
     return a;
 }
 
@@ -2511,8 +2489,8 @@ void f_initparallele(int &argc, char **& argv)
   ffapi::mpi_init(argc,argv);
 
   int mpirank1,mpisize1;
-  MPI_Comm_rank(MPI_COMM_WORLD, &mpirank1); /* local */
-  MPI_Comm_size(MPI_COMM_WORLD, &mpisize1); /* local */
+  MPI_Comm_rank(ff_global_comm_world, &mpirank1); /* local */
+  MPI_Comm_size(ff_global_comm_world, &mpisize1); /* local */
 
   mpirank = mpirank1;//MPI::COMM_WORLD.Get_rank();
   mpisize =mpisize1;// MPI::COMM_WORLD.Get_size();
@@ -2888,7 +2866,7 @@ void f_init_lgparallele()
       Global.New("mpirank",CConstant<long>(mpirank));
       Global.New("mpisize",CConstant<long>(mpisize));
      static long mpiUndefined=MPI_UNDEFINED, mpiAnySource =  MPI_ANY_SOURCE,mpiAnyTag=MPI_ANY_TAG ;
-     static fMPI_Comm fmpiWorld=MPI_COMM_WORLD;
+     static fMPI_Comm fmpiWorld=ff_global_comm_world;
      static fMPI_Comm fmpiSelf=MPI_COMM_SELF;
 
      Global.New("mpiUndefined",CConstant<long>(mpiUndefined));

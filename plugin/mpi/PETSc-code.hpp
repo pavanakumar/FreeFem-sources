@@ -5229,6 +5229,7 @@ static void Init_PETSc( ) {
   int argc = pkarg->n;
   char** argv = new char*[argc];
   for (int i = 0; i < argc; ++i) argv[i] = const_cast< char* >((*(*pkarg)[i].getap( ))->c_str( ));
+  PETSC_COMM_WORLD = ff_global_comm_world;
   PetscInitialize(&argc, &argv, 0, "");
   PetscSysInitializePackage( );
   MatInitializePackage( );

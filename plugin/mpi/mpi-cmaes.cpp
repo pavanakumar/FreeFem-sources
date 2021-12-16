@@ -42,7 +42,7 @@ using namespace std;
 #include "mpi.h"
 #include "cmaes_interface.h"
 
-
+extern MPI_Comm ff_global_comm_world;
 
 template<class T> struct MPI_TYPE {};
 template<> struct MPI_TYPE<long>      {static MPI_Datatype  TYPE(){return MPI_LONG;}};
@@ -305,7 +305,7 @@ class OptimCMA_ES : public OneOperator
 					pcommworld vcommworld=0;
 					if (nargs[8]) vcommworld = GetAny<pcommworld>((*nargs[8])(stack));
 
-					MPI_Comm mpiCommWorld = MPI_COMM_WORLD;
+					MPI_Comm mpiCommWorld = ff_global_comm_world;
 					MPI_Comm * commworld= vcommworld ? (MPI_Comm *) vcommworld : & mpiCommWorld ;
 					//long mu = arg(8,stack,popsize/2);
 

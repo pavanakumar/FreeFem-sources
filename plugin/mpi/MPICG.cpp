@@ -40,6 +40,7 @@ using namespace std;
 #include "CGNL.hpp"
 //#include "gmres.hpp"
 
+extern MPI_Comm ff_global_comm_world;
 
 template<class R,class DJ,class P> 
 int NLCG(const DJ & dJ,const P & C,KN_<R> &x,const int nbitermax, double &eps,long kprint,MPI_Comm * )
@@ -359,7 +360,7 @@ public:
 		long gcverb=51L-Min(Abs(verb),50L);
 		if(verb==0) gcverb = 1000000000;// no print 
 
-		MPI_Comm mpiCommWorld = MPI_COMM_WORLD;
+		MPI_Comm mpiCommWorld = ff_global_comm_world;
 		MPI_Comm * commworld= vcommworld ? (MPI_Comm *) vcommworld: & mpiCommWorld ;
 		KN<R>  bzero(B?1:n); // const array zero
 		bzero=R(); 

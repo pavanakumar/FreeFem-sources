@@ -6,6 +6,8 @@
 #include "parmmg/libparmmg.h"
 #include "GenericMesh.hpp"
 
+extern MPI_Comm ff_global_comm_world;
+
 using namespace Fem2D;
 
 int ffmesh_to_PMMG_pParMesh(const Mesh3 &Th, PMMG_pParMesh& mesh, bool distributed) {
@@ -225,7 +227,7 @@ AnyType parmmg_Op::operator( )(Stack stack) const {
     pcomm = GetAny<pcommworld>((*nargs[1])(stack));
   }
 
-  MPI_Comm comm = pcomm ? *(MPI_Comm*)pcomm : MPI_COMM_WORLD;
+  MPI_Comm comm = pcomm ? *(MPI_Comm*)pcomm : ff_global_comm_world;
 
   PMMG_pParMesh mesh;
   MMG5_pSol sol;

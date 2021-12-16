@@ -52,6 +52,8 @@
 #define HPDDM_NUMBERING 'C'
 #undef CBLAS_H
 
+extern MPI_Comm ff_global_comm_world;
+
 #include <HPDDM.hpp>
 
 #include "common.hpp"
@@ -362,14 +364,14 @@ MPI_Comm getCommunicator(Type* const& pA) {
     if(pA)
         return pA->getCommunicator();
     else
-        return MPI_COMM_WORLD;
+        return ff_global_comm_world;
 }
 template<class Type, typename std::enable_if<HPDDM::hpddm_method_id<Type>::value != 1>::type* = nullptr>
 MPI_Comm getCommunicator(Type* const& pA) {
     if(pA)
         return getCommunicator(pA->_A);
     else
-        return MPI_COMM_WORLD;
+        return ff_global_comm_world;
 }
 template<class K, typename std::enable_if<!std::is_same<K, HPDDM::underlying_type<K>>::value>::type* = nullptr>
 inline K prod(K u, HPDDM::underlying_type<K> d, K v) {
@@ -447,8 +449,8 @@ void parallelIO(string*& name, MPI_Comm* const& comm, bool const& append) {
         base_filename = file_without_extension.substr(p + 1, std::string::npos);
     int rank;
     int size;
-    MPI_Comm_rank(comm ? *comm : MPI_COMM_WORLD, &rank);
-    MPI_Comm_size(comm ? *comm : MPI_COMM_WORLD, &size);
+    MPI_Comm_rank(comm ? *comm : ff_global_comm_world, &rank);
+    MPI_Comm_size(comm ? *comm : ff_global_comm_world, &size);
     std::ostringstream str[3];
     str[2] << size;
     str[1] << std::setw(str[2].str().length()) << std::setfill('0') << rank;
@@ -469,7 +471,7 @@ void parallelIO(string*& name, MPI_Comm* const& comm, bool const& append) {
                 T = std::stoi(line.substr(0, p)) + 1;
             }
         }
-        MPI_Bcast(&T, 1, MPI_INT, 0, comm ? *comm : MPI_COMM_WORLD);
+        MPI_Bcast(&T, 1, MPI_INT, 0, comm ? *comm : ff_global_comm_world);
     }
     str[0] << std::setw(4) << std::setfill('0') << T;
     *name = file_without_extension + "_" + (size > 1 ? str[2].str() + "_" : "") + str[0].str() + (size > 1 ? "_" + str[1].str() : "") + "." + extension;
