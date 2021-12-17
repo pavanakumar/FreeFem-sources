@@ -16,6 +16,8 @@ mpi/hpddm_substructuring.cpp \
 mpi/bem.cpp \
 mpi/mpi-cmaes.cpp \
 mpi/parmetis.cpp \
+mpi/CWIPI.cpp \
+seq/CWIPI.cpp \
 seq/BEC.cpp \
 seq/BasicMath.h \
 seq/BernardiRaugel.cpp \

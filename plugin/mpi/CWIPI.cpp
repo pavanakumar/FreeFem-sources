@@ -10,6 +10,7 @@
 
 using namespace Fem2D;
 	 
+#ifdef ENABLE_CWIPI
      long CwipiWaitIsSendFfpp(string *const &coupling_name,  long const &request){
     	  cwipi_wait_issend(coupling_name->c_str(),  request);
           return 0L;
@@ -130,3 +131,4 @@ using namespace Fem2D;
 	 Global.Add("Cwptestffpp","(",new OneOperator1_<long,long>(Cwptestffpp));
      }
      LOADFUNC(init);
+#endif
