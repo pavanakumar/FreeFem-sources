@@ -203,6 +203,10 @@ download('libpthread-google','http://pkgs.freefem.org/libpthread-google.tar.gz',
 		'libpthread-google.tar.gz',
 		'945c006d898983d1a710aabf52a32d9c');
 
+download('cwipi', 'https://w3.onera.fr/cwipi/sites/w3.onera.fr.cwipi/files/u4/cwipi-0.12.0.tgz', 
+                  'https://w3.onera.fr/cwipi/bibliotheque-couplage-cwipi',
+                  'cwipi-0.12.0.tgz',
+                  '8b4a9e8408573172dbaff0dde87cfc8e');
 
 # run all downloads concurrently
 
