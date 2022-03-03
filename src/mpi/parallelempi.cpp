@@ -74,7 +74,6 @@ void ff_atend( void (*atendff)());
 #define MPICH_IGNORE_CXX_SEEK
 #include <mpi.h>
 
-static MPI_Comm ff_global_comm_world;
 // Remark: on mipich MPI_Comm, MPI_Resquest, MPI_Group, MPI_Op are int
 // => encapsulation
 
