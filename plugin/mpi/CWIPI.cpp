@@ -1,9 +1,10 @@
 #include <ff++.hpp>
-#include "cwipi.h"
+#include <cwipi.h>
 #include "AFunction_ext.hpp"
 #include "AFunction.hpp"
 //#include "MPI_type.h"
-#include "vector"
+#include <vector>
+#include "../../src/mpi/fmpi.hpp"
 
 //cwipi_solver_type_t cellvertex =CWIPI_SOLVER_CELL_VERTEX;
 //int solvert = static_cast<int>(cellvertex);
@@ -107,7 +108,7 @@ using namespace Fem2D;
      }
   
      long Cwptestffpp(long const &testmark){
-	  cwptest(testmark);
+	  //cwptest(testmark);
 	  cout << "hello" << endl;
 	  cout << testmark << endl;
           return 0L;
