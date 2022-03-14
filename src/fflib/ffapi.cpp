@@ -257,7 +257,7 @@ static  void ffapi_winbinmode(FILE *f){
 #endif
   }
 
-static void ffapi_mpi_init(int &argc, char** &argv){
+static  void ffapi_mpi_init(int &argc, char** &argv){
     /// only call MPI_Init() if this has not already been done in [[file:~/ffcs/src/server.cpp]]
 #ifndef FFLANG
  #ifdef PARALLELE
@@ -266,8 +266,8 @@ static void ffapi_mpi_init(int &argc, char** &argv){
     MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided);
     if(provided < MPI_THREAD_SERIALIZED) {
         MPI_Comm_rank(ff_global_comm_world, &provided);
-            if(provided == 0)
-                std::cout << "MPI_THREAD_SERIALIZED not supported !" << std::endl;
+        if(provided == 0)
+            std::cout << "MPI_THREAD_SERIALIZED not supported !" << std::endl;
     }
   #ifdef ENABLE_CWIPI
     // Intercept command line arguements and see if a prefix is specified

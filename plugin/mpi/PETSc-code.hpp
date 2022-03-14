@@ -1,4 +1,5 @@
 #include "petsc.h"
+
 #include "PETSc.hpp"
 
 typedef PETSc::DistributedCSR< HpSchwarz< PetscScalar > > Dmat;

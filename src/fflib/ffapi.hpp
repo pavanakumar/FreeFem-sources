@@ -39,8 +39,6 @@ using namespace std;
 #ifndef FFAPI_HPP
 #define FFAPI_HPP
 
-#include "mpi.h"
-
  // void ff_finalize();
  // void ff_atend( void (*atendff)());
 typedef void (*AtEnd)();
