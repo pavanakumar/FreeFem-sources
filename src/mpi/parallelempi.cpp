@@ -66,7 +66,6 @@ using namespace std;
 
 //FFCS redirection
 #include "../fflib/ffapi.hpp"
-extern MPI_Comm ff_global_comm_world;
 void ff_atend( void (*atendff)());
 
 #undef MPICH_SKIP_MPICXX
@@ -74,6 +73,7 @@ void ff_atend( void (*atendff)());
 #undef MPICH_IGNORE_CXX_SEEK
 #define MPICH_IGNORE_CXX_SEEK
 #include <mpi.h>
+extern MPI_Comm ff_global_comm_world;
 
 // Remark: on mipich MPI_Comm, MPI_Resquest, MPI_Group, MPI_Op are int
 // => encapsulation
