@@ -66,6 +66,7 @@ using namespace std;
 
 //FFCS redirection
 #include "../fflib/ffapi.hpp"
+extern MPI_Comm ff_global_comm_world;
 void ff_atend( void (*atendff)());
 
 #undef MPICH_SKIP_MPICXX
@@ -2508,7 +2509,7 @@ void f_end_parallele()
 void f_initparallele(int &argc, char **& argv)
 {
   /// FFCS: MPI_Init() needs to be called earlier (in ffcs/src/server.cpp)
-  ff_global_comm_world = ffapi::mpi_init(argc,argv);
+  ffapi::mpi_init(argc,argv);
 
   int mpirank1,mpisize1;
   MPI_Comm_rank(ff_global_comm_world, &mpirank1); /* local */

@@ -29,7 +29,6 @@
  */
 #include <iostream>
 #include <cstdio>
-#include "mpi.h"
 
 namespace ffapi {
 
@@ -79,7 +78,7 @@ namespace ffapi {
     // Transfer basic MPI control
     // --------------------------
 
-    MPI_Comm (*mpi_init)(int &argc, char **& argv);
+    void (*mpi_init)(int &argc, char **& argv);
     void (*mpi_finalize)();
 
     // Permanent server control

@@ -41,7 +41,6 @@ using namespace std;
 
 #include "mpi.h"
 
-static MPI_Comm ff_global_comm_world;
  // void ff_finalize();
  // void ff_atend( void (*atendff)());
 typedef void (*AtEnd)();
@@ -103,7 +102,7 @@ namespace ffapi{
   // Transfer basic MPI control
   // --------------------------
 
-  extern MPI_Comm (*mpi_init)(int &argc, char **& argv);
+  extern void (*mpi_init)(int &argc, char **& argv);
   extern void (*mpi_finalize)();
 
   // Permanent server control
