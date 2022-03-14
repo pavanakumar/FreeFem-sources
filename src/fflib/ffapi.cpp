@@ -301,7 +301,6 @@ static  void ffapi_mpi_init(int &argc, char** &argv){
 #endif
 #ifdef ENABLE_CWIPI
    cwipi_finalize();
-   MPI_Comm_free(&ff_global_comm_world);
 #endif
     MPI_Finalize();
 #endif
