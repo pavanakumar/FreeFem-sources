@@ -2514,7 +2514,7 @@ void f_initparallele(int &argc, char **& argv)
   int mpirank1,mpisize1;
   MPI_Comm_rank(ff_global_comm_world, &mpirank1); /* local */
   MPI_Comm_size(ff_global_comm_world, &mpisize1); /* local */
- 
+
   mpirank = mpirank1;//MPI::COMM_WORLD.Get_rank();
   mpisize =mpisize1;// MPI::COMM_WORLD.Get_size();
   if(verbosity> 2 || (verbosity>1&&mpirank ==0))
