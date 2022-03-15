@@ -22,8 +22,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 ### Added
--
-
+- add computation scalar product of R3 example :  ( N'*Tl)
+- add tools to do compution with R3 vector see tutorial/calculus.edp
 ### Changed
 -
 
@@ -34,20 +34,22 @@ All notable changes to this project will be documented in this file.
 -
 
 ### Fixed
--
+- correct the normal the N implicite variable   on meshL case 
+- correct version dump in banner FreeFem++ - version 4.10 (V ...
+- coorect  in CPU time on big mesh due to do bad HCode in HashTable.hpp
+
 
 ## [4.10]
 ### Added
 - ridgeangle named parameter in ExtractMeshL in msh3 plugin
 - DG formulation in 1d :
   add integral of all border of element : `intallBE(ThL)` and unified the notation by adding
-   `intallBE(ThS)` , `intallBE(Th2)`, `intallBE(Th3)`
-
+  `intallBE(ThS)` , `intallBE(Th2)`, `intallBE(Th3)`
   `nuVertex` of now the vertex number of element in intallBE0d integral
   `BoundaryBE`, `InternalBE` to know if border element (BE) is on true boundary of not.
   update `nElementonB` in case on no manifold data (value greater > 2) in meshL, MeshS case ..
-  add code to use jump, mean of test functuon on MeshL case. ( not in mesh3 ) to compute RHS. 
-- add getcwd() function in shell plugin to ghet the current working dir 
+  add code to use jump, mean of test functuon on MeshL case. ( not in mesh3 ) to compute RHS.
+- add getcwd() function in shell plugin to get the current working dir
 - add nuVertex to get the vextex on element in some int?
 
 ### Changed
@@ -119,7 +121,7 @@ All notable changes to this project will be documented in this file.
 - Bilaplacian example using Morley FE with PETSc, see `examples/hpddm/bilaplacian-2d-PETSc.edp`
 - Oseen problem preconditioned by PCD, see `examples/hpddm/oseen-2d-PETSc.edp`
 - SLEPc polynomial eigenvalue solver `PEPSolve()`
-- add trivail example to check periodic boundary condition on meshS , meshL  , mesh3
+- add trivial example to check periodic boundary condition on meshS , meshL  , mesh3
     examples/3d/periodic3.edp	examples/3dSurf/periodicS.edp
     examples/3dCurve/periodicL.edp
 
