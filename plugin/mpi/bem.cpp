@@ -28,6 +28,8 @@ using namespace htool;
 using namespace bemtool;
 
 #include "bem.hpp"
+
+extern MPI_Comm ff_global_comm_world;
   
 double ff_htoolEta=10., ff_htoolEpsilon=1e-3;
 long ff_htoolMinclustersize=10, ff_htoolMaxblocksize=1000000, ff_htoolMintargetdepth=0, ff_htoolMinsourcedepth=0;
@@ -91,7 +93,7 @@ class HMatrixImpl : public HMatrixVirt<K> {
 private:
     HMatrix<K> H;
 public:
-    HMatrixImpl(std::shared_ptr<VirtualCluster> t, std::shared_ptr<VirtualCluster> s, double epsilon=1e-6 ,double eta=10, char symmetry='N', char UPLO='N',const int& reqrank=-1, MPI_Comm comm=MPI_COMM_WORLD) : H(t,s,epsilon,eta,symmetry,UPLO,reqrank,comm){}
+    HMatrixImpl(std::shared_ptr<VirtualCluster> t, std::shared_ptr<VirtualCluster> s, double epsilon=1e-6 ,double eta=10, char symmetry='N', char UPLO='N',const int& reqrank=-1, MPI_Comm comm=ff_global_comm_world) : H(t,s,epsilon,eta,symmetry,UPLO,reqrank,comm){}
     const std::map<std::string, std::string>& get_infos() const {return H.get_infos();}
     void mvprod_global(const K* const in, K* const out,const int& mu=1) const {return H.mvprod_global_to_global(in,out,mu);}
     int nb_rows() const { return H.nb_rows();}
@@ -529,7 +531,7 @@ AnyType SetCompressMat(Stack stack,Expression emat,Expression einter,int init)
 
   string compressor = pcompressor ? *pcompressor : "partialACA";
 
-  MPI_Comm comm = pcomm ? *(MPI_Comm*)pcomm : MPI_COMM_WORLD;
+  MPI_Comm comm = pcomm ? *(MPI_Comm*)pcomm : ff_global_comm_world;
 
   ffassert(einter);
   KNM<K> * pM = GetAny< KNM<K> * >((* mi->a)(stack));
@@ -858,7 +860,7 @@ AnyType OpHMatrixtoBEMForm<R,MMesh,v_fes1,v_fes2>::Op::operator()(Stack stack)  
     
     // compression infogfg
     
-    MPI_Comm comm = ds.commworld ? *(MPI_Comm*)ds.commworld : MPI_COMM_WORLD;
+    MPI_Comm comm = ds.commworld ? *(MPI_Comm*)ds.commworld : ff_global_comm_world;
     
     // source/target meshes
     const SMesh & ThU =Uh->Th; // line

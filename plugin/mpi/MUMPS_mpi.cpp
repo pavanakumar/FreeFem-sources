@@ -44,6 +44,8 @@ using namespace std;
 #include <dmumps_c.h>
 #include <zmumps_c.h>
 
+extern MPI_Comm ff_global_comm_world;
+
 const int JOB_INIT = -1;
 const int JOB_END = -2;
 const int JOB_ANA = 1;
@@ -267,12 +269,12 @@ public:
         if(ds.commworld)
             MPI_Comm_dup(*((MPI_Comm*)ds.commworld), &comm);
 	else
-	    MPI_Comm_dup(MPI_COMM_WORLD, &comm);
+	    MPI_Comm_dup(ff_global_comm_world, &comm);
 
         MPI_Comm_rank(comm, &mpirank);
         int master = mpirank==matrank;
         int myid = 0;
-        MPI_Comm_rank(MPI_COMM_WORLD, &myid);
+        MPI_Comm_rank(ff_global_comm_world, &myid);
         
         id.irn=0;
         id.jcn=0;
