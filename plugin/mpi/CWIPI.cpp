@@ -124,14 +124,6 @@ long CwipiCreateCouplingFfpp(string *const &coupling_name,
       output_format_option->c_str());
   return 0L;
 }
-// long CwipiInitFfpp(string *const &application_name){ // MPI_Comm *const
-// &application_comm){ MPI_Comm const &cwipi_comm, string *const
-// &application_name, MPI_Comm *const &application_comm)
-//   MPI_Comm temp;
-//   MPI_Comm_dup(MPI_COMM_WORLD, &temp);
-//   cwipi_init( MPI_COMM_WORLD, (const char *) application_name, (&temp) );
-//   return 0L;
-//}
 
 long CwipiInitFfpp(fMPI<MPI_Comm, 1> const &cwipi_comm,
                    string *const &application_name,
