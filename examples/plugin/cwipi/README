@@ -1,0 +1,18 @@
+This is a CWIPI plugin example code that couples two FF++ programs
+and exchanges boundary mesh data between the two meshes created in
+the two FF++ instance. 
+
+To run the coupling code 
+
+$> ff-mpirun -n 1 coupling11.edp -v 0 -cwipi-prefix s : -n 1 coupling1.edp -v 0 -cwipi-prefix r
+
+Note:
+-----
+
+1) -cwipi-prefix : Is an identifier that is useful to identify the CWIPI instatnce
+                In this example `-cwipi-prefix s` means the coupling11.edp instance
+                has the identifier "FreeFem++-s" and the coupling1.edp has the
+                identifier "FreeFem++-r".
+
+2) We use the MPMD execution model of MPI to couple instances of code using CWIPI plugin
+

@@ -1,0 +1,118 @@
+load "CWIPI"
+load "PETSc"
+macro dimension()3// EOM
+include "macro_ddm.idp"
+load "medit"
+load "msh3"
+include "cube.idp"
+string cplname = "FSI";
+string cpldistname = "FreeFem++-s";
+int entitiesdim = 2;
+real tolgeom = 0.1;
+int outfreq = 1;
+string outformat = "Ensight Gold";
+string outformatoption = "text";
+
+cout << "MPI rank femscoupling1 = " << mpirank << " " << mpisize << endl;
+
+int[int]  Nxyz=[1,1,1];
+real [int,int]  Bxyz=[[1.,2.],[0.,1.],[0.,1.]];
+int [int,int]  Lxyz=[[1,2],[3,4],[5,6]];
+mesh3 Th=Cube(Nxyz,Bxyz,Lxyz);
+
+
+int[int] BoundaryLabels = [1];
+int NbLabels = BoundaryLabels.n;
+int NbBoundaryElts = Th.nbe; //Nb of Elements of all the Boundary faces
+int BoundaryElts=0; // Nb of Elements of the required element faces
+
+for (int k = 0; k < NbBoundaryElts; k++){
+        for (int i = 0; i < BoundaryLabels.n; i++){
+                if (Th.be(k).label == BoundaryLabels[i]){
+                BoundaryElts++;
+                }
+        }
+}
+
+int numVertexDOF = 3;
+int [int] BoundaryConnec (numVertexDOF*BoundaryElts);
+int [int] temp (BoundaryElts+1);
+int [int] BoundaryConnecidx (BoundaryElts+1); //Shifted Index array
+int [int] UniqueID(BoundaryElts);
+int order = 1; //Mesh polynomial order
+
+//INTERLACED CONNECTIVITY MATRIX
+int bcounter = 0;
+for (int m = 0; m < NbBoundaryElts; m++){
+        for (int i = 0; i < BoundaryLabels.n; i++){
+                if (Th.be(m).label == BoundaryLabels(i)){
+                    for( int k=0; k < numVertexDOF; ++k ) {
+                        BoundaryConnec [  numVertexDOF*bcounter + k] = Th.be(m)[k];
+                    }
+                    bcounter++;
+                }
+        }
+}
+
+for( int i =0; i < BoundaryElts; ++i ) {
+ BoundaryConnecidx[i + 1] = BoundaryConnecidx[i] + 3;
+}
+
+
+GetUniqueConnectivity(UniqueID, BoundaryConnecidx, BoundaryConnec);
+
+
+
+real [int] Coordinates (numVertexDOF*UniqueID.n);
+for (int m=0; m < UniqueID.n; m++){
+        Coordinates [numVertexDOF*m] = Th(UniqueID[m]).x  ;
+        Coordinates [numVertexDOF*m+1] = Th(UniqueID[m]).y ;
+        Coordinates [numVertexDOF*m+2] = Th(UniqueID[m]).z ;
+}
+
+
+int nnodecpl = UniqueID.n;
+int nncellcpl = bcounter;
+//cout  << "unique ID: " << UniqueID << endl;
+//cout << " BNDIndex: " << BoundaryConnecidx << endl;
+//cout << " coordinates: " << Coordinates << endl;
+//cout << " BoundaryConnec: " << BoundaryConnec << endl;
+//cout << "bcounter: " << bcounter << endl;
+//cout << "BoundaryElts: " << BoundaryElts << endl;
+
+
+
+func Pk = [P1, P1,P1]; // finite element space
+
+mpiComm comm;
+cwipiComm(comm);
+macro ThComm()comm//
+
+int nNotLocatedpoints = 0;
+int rRequest=1;
+int tag = 1;
+int stride = 3;
+int timestep = 1;
+real timevalue = 0.1;
+string RecvValuesName = "Receive";
+real [int] RecvArray (numVertexDOF*nnodecpl);
+string exchangename = "Exchange";
+
+//CWIPI EXCHANGE//
+CwipiCreateCouplingFfpp(cplname, cpldistname, entitiesdim, tolgeom, outfreq, outformat, outformatoption);
+
+CwipiDefineMeshFfpp(cplname, nnodecpl, nncellcpl, Coordinates, BoundaryConnecidx, BoundaryConnec);
+
+CwipiLocateFfpp(cplname);
+
+nNotLocatedpoints =  CwipiGetNNotLocatedPointsFfpp(cplname);
+
+if (nNotLocatedpoints > 0) {
+   cout << "---Error--- : not located points found " << nNotLocatedpoints << endl;
+}
+
+
+CwipiIrecvFfpp(cplname, exchangename, tag, stride, timestep, timevalue, RecvValuesName, RecvArray, rRequest);
+CwipiWaitIrecvFfpp(cplname, rRequest);
+cout << "Array Received: " << RecvArray << endl;
+CwipiDeleteCouplingFfpp(cplname);

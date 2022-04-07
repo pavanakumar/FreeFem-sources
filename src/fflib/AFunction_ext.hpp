@@ -491,7 +491,7 @@ public:
 // ***********************
 //
 
-/*
+
 template<class R,class A0,class A1,class A2, class A3, class A4, class A5, class A6, class A7, class A8, class E=E_F0>   // extend AX
 class E_F_F0F0F0F0F0F0F0F0F0_ :public  E { public:                               // extend 
    typedef  R (*func)(const  A0 &,const  A1 & , const A2 &, const A3 &, const A4 &, const A5 &, const A6 &, const A7 &, const A8 & ) ; // extend AX
@@ -555,7 +555,7 @@ public:
 		map_type[typeid(I).name()]),      // extend
     f(ff){}
 };
-*/
+
 
 /*
 

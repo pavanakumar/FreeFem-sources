@@ -16,10 +16,10 @@
 extern KN<String>* pkarg;
 MPI_Comm cwipi_comm;
 
-// cwipi_solver_type_t cellvertex =CWIPI_SOLVER_CELL_VERTEX;
-// int solvert = static_cast<int>(cellvertex);
 using namespace Fem2D;
 using namespace std;
+std::vector<int> global_connectivity;
+std::vector<int> global_connectivity_offset;
 
 long cwipiComm(pcommworld const &comm) {
   MPI_Comm* mpi_comm = (MPI_Comm*)comm;
@@ -53,45 +53,31 @@ long CwipiGetNNotLocatedPointsFfpp(string *const &coupling_id) {
 
 long CwipiDefineMeshFfpp(string *const &coupling_id, long const &n_vertex,
                          long const &n_element, KN<double> *const &coordinates,
-                         KN<long> *const &connectivity_index,
+                         KN<long> *const &connectivity_offset,
                          KN<long> *const &connectivity) {
-  std::vector<int> temp(connectivity_index->size());
-  for (int i = 0; i < connectivity_index->size(); ++i)
-    temp[i] = (*connectivity_index)[i];
-  //  std::copy( *(*connectivity_index), *(*connectivity_index) +
-  //  connectivity_index->size(), temp.begin());
-  std::vector<int> temp1(connectivity->size());
+  global_connectivity_offset.resize(connectivity_offset->size());
+  for (int i = 0; i < connectivity_offset->size(); ++i)
+    global_connectivity_offset[i] = (*connectivity_offset)[i];
+  global_connectivity.resize(connectivity->size());
   for (int j = 0; j < connectivity->size(); ++j)
-    temp1[j] = (*connectivity)[j];
-  //  std::vector<double> temp2(coordinates->size());
-  //  for( int k=0; k < coordinates->size(); ++k)
-  //    temp2[k] = (*coordinates)[k];
-  //  std::copy( *(*connectivity), *(*connectivity) + connectivity->size(),
-  //  temp1.begin());
+    global_connectivity[j] = (*connectivity)[j];
   cwipi_define_mesh(coupling_id->c_str(), n_vertex, n_element,
-                    &((*coordinates)[0]), temp.data(), temp1.data());
+                    &((*coordinates)[0]), global_connectivity_offset.data(), global_connectivity.data());
   return 0L;
 }
 long CwipiHoDefineMeshFfpp(string *const &coupling_id, long const &n_vertex,
                            long const &n_element, long const &order,
                            KN<double> *const &coordinates,
-                           KN<long> *const &connectivity_index,
+                           KN<long> *const &connectivity_offset,
                            KN<long> *const &connectivity) {
-  std::vector<int> temp2(connectivity_index->size());
-  for (int i = 0; i < connectivity_index->size(); ++i)
-    temp2[i] = (*connectivity_index)[i];
-  //  std::copy( *(*connectivity_index), *(*connectivity_index) +
-  //  connectivity_index->size(), temp.begin());
-  std::vector<int> temp3(connectivity->size());
+  global_connectivity_offset.resize(connectivity_offset->size());
+  for (int i = 0; i < connectivity_offset->size(); ++i)
+    global_connectivity_offset[i] = (*connectivity_offset)[i];
+  global_connectivity.resize(connectivity->size());
   for (int j = 0; j < connectivity->size(); ++j)
-    temp3[j] = (*connectivity)[j];
-  //  std::vector<double> temp2(coordinates->size());
-  //  for( int k=0; k < coordinates->size(); ++k)
-  //    temp2[k] = (*coordinates)[k];
-  //  std::copy( *(*connectivity), *(*connectivity) + connectivity->size(),
-  //  temp1.begin());
+    global_connectivity[j] = (*connectivity)[j];
   cwipi_ho_define_mesh(coupling_id->c_str(), n_vertex, n_element, order,
-                       &((*coordinates)[0]), temp2.data(), temp3.data());
+                       &((*coordinates)[0]), global_connectivity_offset.data(), global_connectivity.data());
   return 0L;
 }
 
@@ -104,23 +90,24 @@ long CwipiIsSendFfpp(string *const &coupling_name, string *const &exchange_name,
                      long const &tag, long const &stride, long const &time_step,
                      double const &time_value,
                      string *const &sending_field_name,
-                     double *const &sending_field, long *const &request) {
-  // int tag = dtag;
-  // int stride = dstride;
-  // int time_step = dtime_step;
+                     KN<double> *const &sending_field, long *const &request) {
+  int c_request;
   cwipi_issend(coupling_name->c_str(), exchange_name->c_str(), tag, stride,
                time_step, time_value, sending_field_name->c_str(),
-               sending_field, reinterpret_cast<int *>(request));
+               &((*sending_field)[0]), &c_request);
+  *request = c_request;
   return 0L;
 }
 long CwipiIrecvFfpp(string *const &coupling_name, string *const &exchange_name,
                     long const &tag, long const &stride, long const &time_step,
                     double const &time_value,
                     string *const &receiving_field_name,
-                    double *const &receiving_field, long *const &request) {
+                    KN<double> *const &receiving_field, long *const &request) {
+  int r_request;
   cwipi_irecv(coupling_name->c_str(), exchange_name->c_str(), tag, stride,
               time_step, time_value, receiving_field_name->c_str(),
-              receiving_field, reinterpret_cast<int *>(request));
+              &((*receiving_field)[0]), &r_request);
+  *request = r_request;
   return 0L;
 }
 long CwipiCreateCouplingFfpp(string *const &coupling_name,
@@ -149,23 +136,24 @@ long GetUniqueConnectivity(KN<long> *const &arr, KN<long> *const &conn_index,
   long ne = conn_index->size() - 1;
   set<long> s;
   for (int i = 0; i < ne; ++i) {
-    // std::cout << "offset " << (*conn_index)[i] << " to " <<
-    // (*conn_index)[i+1] << "\n";
     for (int j = (*conn_index)[i]; j < (*conn_index)[i + 1]; ++j) {
       s.insert((*conn)[j]);
     }
   }
   long num_unique = s.size();
   std::cout << "Found totally " << num_unique << " vertices\n";
-  long *temp = (long *)malloc(sizeof(long) * num_unique);
-  std::copy(s.begin(), s.end(), temp);
-  arr->unset();
-  arr->set(temp, num_unique);
+  arr->resize(num_unique);
+  long counter = 0;
+  for (const auto &item : s ) { 
+     (*arr)[counter] = item;
+     counter++;
+  }
+
   // Create the hash table of GID to LID
   std::map<long, long> gid_to_lid;
-  long counter = 0;
+  counter = 0;
   for (int i = 0; i < num_unique; ++i)
-    gid_to_lid[temp[i]] = ++counter;
+    gid_to_lid[(*arr)[i]] = ++counter;
   for (int i = 0; i < ne; ++i) {
     for (int j = (*conn_index)[i]; j < (*conn_index)[i + 1]; ++j) {
       (*conn)[j] = gid_to_lid[(*conn)[j]];
@@ -182,7 +170,26 @@ long GetUniqueConnectivity(KN<long> *const &arr, KN<long> *const &conn_index,
   return 0L;
 }
 
+long CwipiDumpApplicationPropertiesFfpp () {
+     cwipi_dump_application_properties();
+     return 0L;
+     }
+
+/*long CwipiExchange(string *const &coupling_id,string *const &exchange_name,long const &stride,long const &time_step,
+     long const &time_value,string *const &sending_field_name,double *const &sending_field,string *const &receiving_field_name,
+     double *const &receiving_field,long *const &n_not_located_points) {
+    
+     cwipi_exchange(coupling_id->c_str(),exchange_name->c_str(),stride,time_step,
+     time_value,sending_field_name->c_str(),sending_field,reinterpret_cast<char*>(receiving_field_name),receiving_field,
+     reinterpret_cast<int *>(n_not_located_points));
+     return 0L;
+}*/
+
 void finalize( ) {
+  global_connectivity.clear();
+  global_connectivity.shrink_to_fit();
+  global_connectivity_offset.clear();
+  global_connectivity_offset.shrink_to_fit();
   cwipi_finalize();
 #if defined(PETSC_HAVE_ELEMENTAL)
   PetscElementalFinalizePackage();
@@ -195,7 +202,7 @@ void init() {
   int argc = pkarg->n;
   char** argv = new char*[argc];
   for (int i = 0; i < argc; ++i) argv[i] = const_cast< char* >((*(*pkarg)[i].getap( ))->c_str( ));
-  cat << "FreeFEM";
+  cat << "FreeFem++";
   for(int i=0; i<argc-1; ++i) {
     if( str_cwipi_prefix.compare(argv[i]) == 0 ) {
       cat << "-" << argv[i+1];
@@ -231,16 +238,16 @@ void init() {
                                KN<long> *, KN<long> *>(CwipiHoDefineMeshFfpp));
   Global.Add("CwipiDeleteCouplingFfpp", "(",
              new OneOperator1_<long, string *>(CwipiDeleteCouplingFfpp));
-  /*
+  
   Global.Add(
       "CwipiIsSendFfpp", "(",
       new OneOperator9_<long, string *, string *, long, long, long, double,
-                        string *, double *, long *>(CwipiIsSendFfpp));
+                        string *, KN<double> *, long *>(CwipiIsSendFfpp));
   Global.Add(
       "CwipiIrecvFfpp", "(",
       new OneOperator9_<long, string *, string *, long, long, long, double,
-                        string *, double *, long *>(CwipiIrecvFfpp));
-                        */
+                        string *, KN<double> *, long *>(CwipiIrecvFfpp));
+                        
   Global.Add("CwipiCreateCouplingFfpp", "(",
              new OneOperator7_<long, string *, string *, long, double, long,
                                string *, string *>(CwipiCreateCouplingFfpp));
@@ -251,5 +258,9 @@ void init() {
   Global.Add("GetUniqueConnectivity", "(",
              new OneOperator3_<long, KN<long> *, KN<long> *, KN<long> *>(
                  GetUniqueConnectivity));
+  Global.Add("CwipiDumpApplicationPropertiesFfpp", "(",
+             new OneOperator0<long>(CwipiDumpApplicationPropertiesFfpp));
+  //Global.Add("CwipiExchange", "(", new OneOperator10_<long, string *, string*,
+  //long,long,long,string *, KN<long> *, string * ,KN<long> *,long>(CwipiExchange));
 }
 LOADFUNC(init);
