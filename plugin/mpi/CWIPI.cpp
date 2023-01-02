@@ -43,11 +43,44 @@ long CwipiLocateFfpp(string *const &coupling_id) {
   return 0L;
 }
 long CwipiGetNLocatedPointsFfpp(string *const &coupling_id) {
-  cwipi_get_n_located_points(coupling_id->c_str());
-  return 0L;
+  return cwipi_get_n_located_points(coupling_id->c_str());
+  
 }
 long CwipiGetNNotLocatedPointsFfpp(string *const &coupling_id) {
-  cwipi_get_n_not_located_points(coupling_id->c_str());
+  return cwipi_get_n_not_located_points(coupling_id->c_str());
+  
+}
+
+long CwipiSetPointsToLocate(string *const &coupling_id, long const &n_points, KN<double> *const &coordinate) {
+  cwipi_set_points_to_locate(coupling_id->c_str(), n_points, &((*coordinate)[0]));
+  return 0L;
+}
+
+long CwipiUpdateLocation(string *const &coupling_id) {
+  cwipi_update_location(coupling_id->c_str());
+  return 0L;
+}
+
+long CwipiAddLocalDoubleControlParameter(string *const &name, double const &value) {
+     cwipi_add_local_double_control_parameter(name->c_str(), value);
+  return 0L;
+}
+
+long CwipiAddLocalIntControlParameter(string *const &name, long const &value){
+     cwipi_add_local_int_control_parameter(name->c_str(), value);
+     return 0L;
+}
+
+double CwipiGetDistantDoubleControlParameter(string *const &coupling_id, string *const &name) {
+     return cwipi_get_distant_double_control_parameter(coupling_id->c_str(), name->c_str() );
+}
+
+long CwipiGetDistantIntControlParameter(string *const &coupling_id, string *const &name) {
+     return cwipi_get_distant_int_control_parameter(coupling_id->c_str(), name->c_str());
+}
+
+long CwipiSynchronizeControlParameter(string *const &coupling_id) {
+     cwipi_synchronize_control_parameter(coupling_id->c_str());
   return 0L;
 }
 
@@ -202,7 +235,7 @@ void init() {
   int argc = pkarg->n;
   char** argv = new char*[argc];
   for (int i = 0; i < argc; ++i) argv[i] = const_cast< char* >((*(*pkarg)[i].getap( ))->c_str( ));
-  cat << "FreeFem++";
+  cat << "FreeFem";
   for(int i=0; i<argc-1; ++i) {
     if( str_cwipi_prefix.compare(argv[i]) == 0 ) {
       cat << "-" << argv[i+1];
@@ -230,6 +263,26 @@ void init() {
              new OneOperator1_<long, string *>(CwipiGetNLocatedPointsFfpp));
   Global.Add("CwipiGetNNotLocatedPointsFfpp", "(",
              new OneOperator1_<long, string *>(CwipiGetNNotLocatedPointsFfpp));
+  Global.Add("CwipiSetPointsToLocate", "(",
+             new OneOperator3_<long, string *, long, KN<double> *>(CwipiSetPointsToLocate));
+  Global.Add("CwipiUpdateLocation", "(",
+             new OneOperator1_<long, string *>(CwipiUpdateLocation));
+ 
+  Global.Add("CwipiAddLocalDoubleControlParameter", "(",
+             new OneOperator2_<long, string * , double>(CwipiAddLocalDoubleControlParameter));  
+
+  Global.Add("CwipiAddLocalIntControlParameter", "(",
+             new OneOperator2_<long, string * ,long>(CwipiAddLocalIntControlParameter));
+ 
+  Global.Add("CwipiGetDistantDoubleControlParameter", "(",
+             new OneOperator2_<double, string *, string *>(CwipiGetDistantDoubleControlParameter));
+
+  Global.Add("CwipiGetDistantIntControlParameter", "(",
+             new OneOperator2_<long, string *, string *>(CwipiGetDistantIntControlParameter));
+  
+  Global.Add("CwipiSynchronizeControlParameter", "(",
+             new OneOperator1_<long, string *>(CwipiSynchronizeControlParameter));
+
   Global.Add("CwipiDefineMeshFfpp", "(",
              new OneOperator6_<long, string *, long, long, KN<double> *,
                                KN<long> *, KN<long> *>(CwipiDefineMeshFfpp));
